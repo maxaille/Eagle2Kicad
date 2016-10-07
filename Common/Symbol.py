@@ -10,8 +10,7 @@ import copy
 class DevicePart(object):
     def __init__(self, device, symbolsDict, gates, converter):
         self.device = device
-        self.name = str(device.fullName) + "_" + str(
-            self.device.package)  #we have to create a number of symbols to match diffrent pin configurations
+        self.name = str(device.fullName)
         self.symbols = [Symbol(symbolsDict[gate.symbol], converter, device, (gate.x, gate.y)) \
                         for gate in gates]
         self.units = 1 #TODO: we have to deal somehow with multiunit devices
@@ -59,8 +58,8 @@ class DevicePart(object):
 
 class Symbol(object):
     __slots__ = ("name", "isPower", "polygons", "wires", "texts", "pins", "circles", "rectangles", "package", "device")
-    #TODO multigate Parts each shape has a unit associated with it... 
-    #this coresponds to the swap level in the deviceset. 
+    #TODO multigate Parts each shape has a unit associated with it...
+    #this coresponds to the swap level in the deviceset.
     def __init__(self, node, converter, device=None, offset=None):
         self.polygons = []
         self.wires = []
@@ -230,5 +229,3 @@ class Pin(object):
         myString += " " + self.rotation + " " + self.numSize + " " + self.nameSize + " 0 0 "
         myString += self.direction + " " + self.shape + "\n"
         return myString
-
-
