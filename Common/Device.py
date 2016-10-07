@@ -105,4 +105,5 @@ class Deviceset(object):
     def getGates(self):
         return self.gates
 
-
+    def getPrefix(self):
+        return self.prefix

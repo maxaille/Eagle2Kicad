@@ -49,12 +49,13 @@ class Library(object):
 
             for deviceset in devicesetsLst: #strange if not?
                 #just iterater over all posible device packages
+                prefix = deviceset.getPrefix()
                 for device in deviceset.getDevices():
                     #we have to create a number of symbols to match diffrent pin configurations
                     #the real name of device is <deviceset> name plus name of <device>
                     #symlink is just a scheme representation of the set of devices or devicessts 
                     device.setFullName(deviceset.name)
-                    dp = DevicePart(device, symbolsHash, deviceset.getGates(), symConverter)
+                    dp = DevicePart(device, symbolsHash, prefix, deviceset.getGates(), symConverter)
                     self.deviceparts.append(dp)
 
 

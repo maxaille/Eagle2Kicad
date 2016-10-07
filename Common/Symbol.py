@@ -8,12 +8,37 @@ import logging
 import copy
 
 class DevicePart(object):
-    def __init__(self, device, symbolsDict, gates, converter):
+    def __init__(self, device, symbolsDict, prefix, gates, converter):
         self.device = device
         self.name = str(device.fullName)
+        self.prefix = prefix if prefix else "U"
         self.symbols = [Symbol(symbolsDict[gate.symbol], converter, device, (gate.x, gate.y)) \
                         for gate in gates]
-        self.units = 1 #TODO: we have to deal somehow with multiunit devices
+        self.units = 0 #TODO: we have to deal somehow with multiunit devices
+        self.textRef = {"x":0, "y":0, "size":0}
+        self.textValue = {"x":0, "y":0, "size":0}
+
+        texts = symbolsDict[gates[0].symbol].findall("text")
+        for text in texts:
+            t = Text(text, converter, True)
+            if t.val.upper() == ">NAME":
+                self.textRef = {
+                    "x": t.x,
+                    "y": t.y,
+                    "size": t.size,
+                    "hJust": t.hJust[0].capitalize(),
+                    "vJust": t.vJust[0].capitalize()
+                }
+            elif t.val.upper() == ">VALUE":
+                self.textValue = {
+                    "x": t.x,
+                    "y": t.y,
+                    "size": t.size,
+                    "hJust": t.hJust[0].capitalize(),
+                    "vJust": t.vJust[0].capitalize()
+                }
+
+
         for gate in gates:
             if gate.name == "P" or gate.symbol == "PWRN":
                 continue
@@ -38,12 +63,30 @@ class DevicePart(object):
         else:
             token = ""
 
-        symFile.write("#Generated for " + self.device.fullName + " package " + str(self.device.package) + "\n")
-        symFile.write("DEF " + self.name + " U 0 100 Y Y " + ( "%d" % self.units) \
-                      + " 0 " + self.isPower + "\n")
-        #TODO give actual names to fields in syms
-        symFile.write("F0 \"" + token + "U\" 0 0 0 H I C CNN\n")
-        symFile.write("F1 \"" + self.name + "\" 0 0 0 H I C CNN \n")
+        symFile.write("#Generated for %s package %s\n" % (self.device.fullName, str(self.device.package)) )
+        symFile.write("DEF %s %s 0 100 Y Y %d 0 %s\n" % (self.name, self.prefix, self.units, self.isPower) )
+        symFile.write("F0 \"%s\" %s %s %s H V %s %sNN\n" % \
+            (
+                token + self.prefix,
+                self.textRef["x"],
+                self.textRef["y"],
+                self.textRef["size"],
+                self.textRef["hJust"],
+                self.textRef["vJust"]
+            )
+        )
+
+        symFile.write("F1 \"%s\" %s %s %s H V %s %sNN\n" % \
+            (
+                self.name,
+                self.textValue["x"],
+                self.textValue["y"],
+                self.textValue["size"],
+                self.textValue["hJust"],
+                self.textValue["vJust"]
+            )
+        )
+
         if self.device.package is not None:
             symFile.write("$FPLIST\n")
             symFile.write(" " + self.device.package + "\n")
@@ -74,7 +117,8 @@ class Symbol(object):
         for wire in node.findall("wire"):
             self.wires.append(Line(wire, converter, True, offset))
         for text in node.findall("text"):
-            self.texts.append(Text(text, converter, True, offset))
+            if text.text.upper() != ">NAME" and text.text.upper() != ">VALUE":
+                self.texts.append(Text(text, converter, True, offset))
         for pin in node.findall("pin"):
             self.pins.append(Pin(pin, converter, True, offset))
         for circle in node.findall("circle"):
@@ -215,7 +259,7 @@ class Pin(object):
         #<!ENTITY % PinVisible        "(off | pad | pin | both)">
         vis = node.get("visible")
 
-        self.numSize = "0"
+        self.numSize = "50"
         self.nameSize = "0"
 
         if vis != "off" and vis != "pad":
