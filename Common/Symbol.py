@@ -187,6 +187,8 @@ class Pin(object):
 
     def __init__(self, node, converter, noTranspose=True, offset=None):
         self.name = node.get("name")
+        if self.name[0] == "!":
+            self.name = "~" + self.name[1:]
         x, y = converter.convertCoordinate(node.get("x"), node.get("y"), True, True)
         if offset != None:
             dX, dY = converter.convertCoordinate(offset[0], offset[1], noTranspose)

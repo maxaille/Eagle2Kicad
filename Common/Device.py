@@ -13,6 +13,9 @@ class Connect(object):
         self.pin = node.get("pin")
         self.pad = node.get("pad")
 
+        if self.pin[0] == "!":
+            self.pin = "~" + self.pin[1:]
+
 
 class Technology(object):
     """represents technology tag"""
