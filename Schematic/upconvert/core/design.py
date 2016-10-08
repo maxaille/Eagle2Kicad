@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
 """ The design class """
+from builtins import zip
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -25,7 +27,7 @@ from upconvert.core.components import Components
 from upconvert.core.shape import Point
 
 
-class Design:
+class Design(object):
     """ The Design class represents the whole schematic, which is also
     the top level of the output format.  The internal structure of this
     class closely matches the JSON output."""
@@ -57,8 +59,8 @@ class Design:
         """ Return the min and max point of a design """
         bounds = [net.bounds() for net in self.nets]
         bounds.extend([anno.bounds() for anno in self.design_attributes.annotations])
-        offset_bounds = lambda (p1, p2), (xo, yo): [Point(p1.x + xo, p1.y + yo),
-                                                    Point(p2.x + xo, p2.y + yo)]
+        offset_bounds = lambda t1, t2: [Point(t1[0].x + t2[0], t1[0].y + t2[1]),
+                                                    Point(t1[1].x + t2[0], t1[1].y + t2[1])]
         for comp in self.component_instances:
             offsets = [(att.x, att.y) for att in comp.symbol_attributes]
             lib_comp = self.components.components[comp.library_id]

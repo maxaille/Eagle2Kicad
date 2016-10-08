@@ -179,12 +179,13 @@ def convertSchGUI():
     fileName = askopenfilename(title="Input Schematic", filetypes=[('Eagle V6 Schematic', '.sch'), ('all files', '.*')],
         defaultextension='.sch')
     if not fileName: return
+    fileName = fileName.replace(" ", "\\ ")
 
     iName = fileName.replace("/", "\\"); iName = iName.split("\\")[-1]; iName = iName.split(".")[0]
     modFileName = asksaveasfilename(title="Schematic Output File", filetypes=[('KiCad Schematic', '.sch'),
         ('all files', '.*')], defaultextension='.sch', initialfile=iName+"KiCad")
     if not modFileName: return
-
+    modFileName = modFileName.replace(" ", "\\ ")
     val = convertSch(fileName, modFileName)
 
     if val[0]:
@@ -199,7 +200,7 @@ def convertSch(schFile, outFile):
     name = name.split(".")[0]
 
     os.system("cd Schematic; python -m upconvert.upconverter -i " +
-        schFile+" -f eaglexml -o "+outFile+" -t kicad --unsupported")
+        schFile+" -f eaglexml -o "+outFile+" -t kicad --raise-errors")
 
     return True, "Conversion of Schematic '" + name + "' Complete"
 
@@ -266,4 +267,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

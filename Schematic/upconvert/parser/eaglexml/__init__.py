@@ -1,5 +1,9 @@
 #!/usr/bin/env python2
 """ The Eagle XML Format Parser """
+from __future__ import division
+from builtins import map
+from builtins import object
+from past.utils import old_div
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -58,7 +62,7 @@ from upconvert.core.shape import Arc, Circle, Label, Line, Rectangle, Polygon
 
 from upconvert.parser.eaglexml.generated_g import parse
 
-EAGLE_SCALE = 10.0/9.0
+EAGLE_SCALE = old_div(10.0,9.0)
 
 
 class EagleXML(object):
@@ -78,7 +82,7 @@ class EagleXML(object):
      """
 
     SCALE = 2.0
-    MULT =  90 / 25.4 # mm to 90 dpi
+    MULT =  old_div(90, 25.4) # mm to 90 dpi
 
     def __init__(self):
         self.design = Design()
@@ -199,7 +203,7 @@ class EagleXML(object):
             body.add_shape(Rectangle(ux, uy, lx - ux, uy - ly))
 
         for poly in symbol.polygon:
-            map(body.add_shape, self.make_shapes_for_poly(poly))
+            list(map(body.add_shape, self.make_shapes_for_poly(poly)))
 
         for circ in symbol.circle:
             body.add_shape(self.make_shape_for_circle(circ))
@@ -249,7 +253,7 @@ class EagleXML(object):
                         (self.make_length(wire.x2),
                          self.make_length(wire.y2)))
 
-        curve, x1, y1, x2, y2 = map(float, (wire.curve, wire.x1, wire.y1, wire.x2, wire.y2))
+        curve, x1, y1, x2, y2 = list(map(float, (wire.curve, wire.x1, wire.y1, wire.x2, wire.y2)))
 
         if curve < 0:
             curve = -curve
@@ -268,11 +272,11 @@ class EagleXML(object):
 
         chordlen = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2))
 
-        radius = chordlen / (2.0 * sin(radians(curve) / 2))
+        radius = old_div(chordlen, (2.0 * sin(old_div(radians(curve), 2))))
 
-        mx, my = (x1 + x2) / 2, (y1 + y2) / 2 # midpoint between arc points
+        mx, my = old_div((x1 + x2), 2), old_div((y1 + y2), 2) # midpoint between arc points
 
-        h = sqrt(pow(radius, 2) - pow(chordlen / 2, 2)) # height of isoceles
+        h = sqrt(pow(radius, 2) - pow(old_div(chordlen, 2), 2)) # height of isoceles
 
         # calculate center point
         cx = mx + mult * h * (y1 - y2) / chordlen
@@ -286,8 +290,8 @@ class EagleXML(object):
             end_angle = start_angle + radians(curve) + (pi if major_arc else 0.0)
 
         return Arc(self.make_length(cx), self.make_length(cy),
-                   round(start_angle / pi, 3) % 2.0,
-                   round(end_angle / pi, 3) % 2.0,
+                   round(old_div(start_angle, pi), 3) % 2.0,
+                   round(old_div(end_angle, pi), 3) % 2.0,
                    self.make_length(radius))
 
 
@@ -314,9 +318,11 @@ class EagleXML(object):
         return ocirc
 
 
-    def get_pin_null_point(self, (x, y), length, rotation):
+    def get_pin_null_point(self, x_y, length, rotation):
         """ Return the null point of a pin given its connect point,
         length, and rotation. """
+
+        (x, y) = (x_y[0], x_y[1])
 
         if length == 'long':
             distance = int(27 * self.SCALE) # .3 inches
@@ -346,9 +352,11 @@ class EagleXML(object):
         return coords
 
 
-    def get_pin_label(self, pin, (null_x, null_y)):
+    def get_pin_label(self, pin, null_x_y):
         """ Return the Label for an eagle pin given the pin and the
         null point. """
+
+        (null_x, null_y) = (null_x_y[0], null_x_y[1])
 
         if not pin.name or pin.visible not in ('pin', 'both', None):
             return None
@@ -534,7 +542,7 @@ class EagleXML(object):
 def make_angle(value):
     """ Make an openjson angle measurement from an eagle angle. """
 
-    angle = float(value.lstrip('MSR')) / 180
+    angle = old_div(float(value.lstrip('MSR')), 180)
 
     return angle if angle == 0.0 else 2.0 - angle
 
@@ -557,12 +565,14 @@ def get_subattr(obj, name, default=None):
     return default if obj is None else obj
 
 
-def rotate_point((x, y), angle, flip=False):
+def rotate_point(x_y, angle, flip=False):
     """
     Return the point rotated by the given openjson angle (clockwise).
     If flip is True, then do a vertical flip around the y axis after
     the rotation.
     """
+
+    (x, y) = (x_y[0], x_y[1])
 
     rads = -angle * pi
 

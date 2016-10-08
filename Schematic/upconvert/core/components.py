@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 """ The component class """
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -24,7 +25,7 @@ from upconvert.core.shape import Point
 from upconvert.utils.stringify import stringify_attributes
 
 
-class Components:
+class Components(object):
     """ Container class for individual 'Component's.
     Only used for add_component and json() (export) """
 
@@ -39,31 +40,31 @@ class Components:
 
     def scale(self, factor):
         """ Scale the x & y coordinates in the library. """
-        for component in self.components.values():
+        for component in list(self.components.values()):
             component.scale(factor)
 
 
     def shift(self, dx, dy):
         """ Shift the x & y coordinates in the library. """
-        for component in self.components.values():
+        for component in list(self.components.values()):
             component.shift(dx, dy)
 
 
     def rebase_y_axis(self, height):
         """ Rebase the y coordinate in the library. """
-        for component in self.components.values():
+        for component in list(self.components.values()):
             component.rebase_y_axis(height)
 
 
     def json(self):
         """ Copy to a new dictionary to return """
         ret = dict()
-        for library_id, component in self.components.items():
+        for library_id, component in list(self.components.items()):
             ret[library_id] = component.json()
         return ret
 
 
-class Component:
+class Component(object):
     """ The Component class represents a single kind of part (component).
     It can have multiple graphical representations (Symbols), each with
     multiple sections (Bodies).
@@ -123,7 +124,7 @@ class Component:
             }
 
 
-class Symbol:
+class Symbol(object):
     """ This is a graphical representation of a Component.
     A Component can have many Symbols, and each Symbol can have
     multiple Bodies """
@@ -160,7 +161,7 @@ class Symbol:
         return {"bodies":[b.json() for b in self.bodies]}
 
 
-class Footprint:
+class Footprint(object):
     """ This is the physical representation of a Component.
     A Component can have many Footprints, and each Footprint can have
     multiple Bodies """
@@ -210,7 +211,7 @@ class Footprint:
                 "gen_objs": [go.json() for go in self.gen_objs]}
 
 
-class SBody:
+class SBody(object):
     """ A body of a Symbol of a Component """
 
     def __init__(self):
@@ -273,7 +274,7 @@ class SBody:
             }
 
 
-class FBody:
+class FBody(object):
     """ A body of a footprint of a Component """
 
     def __init__(self):
@@ -335,7 +336,7 @@ class FBody:
             shape.rotate(rotation)
 
 
-class Pin:
+class Pin(object):
     """ Pins are the parts of SBodies (/symbols/components) that connect
     to nets. Basically a line segment, with a null end and a connect end
     """
@@ -403,7 +404,7 @@ class Pin:
         return ret
 
 
-class Pad:
+class Pad(object):
     """ Pads are the parts of FBodies (/footprints/components) that connect
     to traces. Basically a set of shapes.
     """

@@ -27,7 +27,7 @@ def verify_json(data):
     # key is the component name. value is the number of pins it has
     component_and_pins = {}
 
-    for comp_id, comp in data['components'].iteritems():
+    for comp_id, comp in data['components'].items():
         component_and_pins[comp_id] = []
         for symbol in comp['symbols']:
             for body in symbol['bodies']:

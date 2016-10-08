@@ -1,5 +1,9 @@
 #!/usr/bin/env python2
 """ The layout class """
+from __future__ import division
+from builtins import range
+from past.utils import old_div
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -29,14 +33,14 @@ from upconvert.core.shape import Circle, Label, Line, Point, Rectangle, RoundedR
 log = logging.getLogger('core.layout')
 
 
-class Layout:
+class Layout(object):
     """ Represents the design schematic as a PCB Layout. """
 
     def __init__(self):
         self.layers = list()
 
 
-class Layer:
+class Layer(object):
     """ A layer in the gerber (not a layer in the design). """
 
     def __init__(self, name='', polarity='dark'):
@@ -47,7 +51,7 @@ class Layer:
         self.macros = dict()
 
 
-class Image:
+class Image(object):
     """
     An image layer (not a PCB layer).
 
@@ -163,8 +167,8 @@ class Image:
             for contour_segments in label_contours:
                 for segments in contour_segments:
                     if shapecpy.align == 'center':
-                        segments[0].shift(-(x_offset / 2), 0)
-                        segments[1].shift(-(x_offset / 2), 0)
+                        segments[0].shift(-(old_div(x_offset, 2)), 0)
+                        segments[1].shift(-(old_div(x_offset, 2)), 0)
 
                     if shapecpy.rotation:
                         segments[0].rotate(shapecpy.rotation)
@@ -240,8 +244,8 @@ class Image:
             radius = abs(shapecpy.radius)
             inner_height = abs(shapecpy.height) - (radius * 2)
             inner_width = abs(shapecpy.width) - (radius * 2)
-            half_width = inner_width / 2.0
-            half_height = inner_height / 2.0
+            half_width = old_div(inner_width, 2.0)
+            half_height = old_div(inner_height, 2.0)
 
             high_rect = Rectangle(0, 0, abs(inner_width), abs(shapecpy.height), is_centered=True)
             wide_rect = Rectangle(0, 0, abs(shapecpy.width), abs(inner_height), is_centered=True)
@@ -282,7 +286,7 @@ class Image:
                 self.smears.append(Smear(line, Circle(0, 0, 0.1016 * 1000000))) # 4 Mils
 
 
-class Segment:
+class Segment(object):
     """ A single segment of a trace. """
 
     def __init__(self, layer, p1, p2, width):
@@ -295,7 +299,7 @@ class Segment:
         return '''<Segment(layer='{0}', p1={1}, p2={2}, width{3})>'''.format(self.layer, self.p1, self.p2, self.width)
 
 
-class Fill:
+class Fill(object):
     """
     A closed loop of connected segments (lines/arcs).
 
@@ -309,7 +313,7 @@ class Fill:
         self.outline_points = outline_points or list()
 
 
-class Smear:
+class Smear(object):
     """ A line drawn by a rectangular aperture. """
 
     def __init__(self, line, shape):
@@ -317,7 +321,7 @@ class Smear:
         self.shape = shape
 
 
-class ShapeInstance:
+class ShapeInstance(object):
     """
     An instance of a shape defined by an aperture.
 
@@ -336,7 +340,7 @@ class ShapeInstance:
         self.hole = aperture.hole
 
 
-class ComplexInstance:
+class ComplexInstance(object):
     """
     A complex instance of a collection of primitive shapes.
 
@@ -349,7 +353,7 @@ class ComplexInstance:
         self.primitives = primitives
 
 
-class Aperture:
+class Aperture(object):
     """
     A simple shape, with or without a hole.
 
@@ -397,7 +401,7 @@ class Aperture:
         return '<Aperture(code={0}, shape={1}, hole={2})>'.format(self.code, self.shape, self.hole)
 
 
-class Macro:
+class Macro(object):
     """
     Complex shape built from multiple primitives.
 
@@ -416,7 +420,7 @@ class Macro:
 
 
 
-class MacroAperture:
+class MacroAperture(object):
     """ An aperture utilizing a macro with specific parameters. """
 
     def __init__(self, code, name, params=None):
@@ -432,7 +436,7 @@ class MacroAperture:
         return (self.name == other.name and self.params == other.params)
 
 
-class Primitive:
+class Primitive(object):
     """ A shape with rotation and exposure modifiers. """
 
     def __init__(self, is_additive, rotation, shape):

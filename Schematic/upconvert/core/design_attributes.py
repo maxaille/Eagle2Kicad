@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 """ The attributes class """
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -24,7 +25,7 @@ import time
 from upconvert.utils.stringify import stringify_attributes
 
 
-class DesignAttributes:
+class DesignAttributes(object):
     """ The DesignAttributes class corresponds to the design_attributes
     object in the Open JSON format """
 
@@ -63,7 +64,7 @@ class DesignAttributes:
             }
 
 
-class Metadata:
+class Metadata(object):
     """ The metadata of a DesignAttributes object """
 
     def __init__(self):

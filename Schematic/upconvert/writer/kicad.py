@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 """ The KiCAD Format Writer """
+from __future__ import division
+from past.utils import old_div
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -39,7 +42,7 @@ from os.path import splitext
 from upconvert.core.shape import Shape
 from upconvert.parser.kicad import MATRIX2ROTATIONFLIP, MULT as INMULT
 
-ROTATIONFLIP2MATRIX = dict((v, k) for k, v in MATRIX2ROTATIONFLIP.items())
+ROTATIONFLIP2MATRIX = dict((v, k) for k, v in list(MATRIX2ROTATIONFLIP.items()))
 
 
 class KiCAD(object):
@@ -114,7 +117,7 @@ $EndDescr
         f.write('Text Label %d %d %d 60 ~ 0\n' %
                 (make_length(ann.x), -make_length(ann.y),
                  int(ann.rotation * 1800)))
-        f.write(ann.value.encode('utf-8') + '\n')
+        f.write(ann.value + '\n')
 
     def write_instance(self, f, inst):
         """ Write a $Comp component to a kiCAD schematic """
@@ -125,7 +128,7 @@ $EndDescr
                                -make_length(inst.symbol_attributes[0].y)))
         for i, ann in enumerate(inst.symbol_attributes[0].annotations):
             f.write('F %d "%s" %s %d %d 60  0000 C CNN\n' %
-                    (i, ann.value.encode('utf-8'),
+                    (i, ann.value,
                      'H' if ann.rotation == 0 else 'V',
                      make_length(inst.symbol_attributes[0].x + ann.x),
                      -make_length(inst.symbol_attributes[0].y + ann.y)))
@@ -139,7 +142,7 @@ $EndDescr
         """ Write a Net as kiCAD Wires and Connections """
         segments = set() # ((x,y),(x,y))
 
-        for point in net.points.values():
+        for point in list(net.points.values()):
             for point2_id in point.connected_points:
                 point2 = net.points.get(point2_id)
                 if point2 is not None:
@@ -164,7 +167,7 @@ $EndDescr
         """ Write out a kiCAD cache library to the given filename """
         with open(filename, 'w') as f:
             self.write_library_header(f, design)
-            for cpt in design.components.components.iteritems():
+            for cpt in design.components.components.items():
                 self.write_library_component(f, cpt)
             self.write_library_footer(f)
 
@@ -179,9 +182,8 @@ $EndDescr
     def write_library_component(self, f, cpt):
         """ Write a single component to a kiCAD cache library """
         cpt_name, cpt = cpt
-        ref = cpt.attributes.get('_prefix', 'U').encode('utf-8')
+        ref = cpt.attributes.get('_prefix', 'U')
         name = cpt_name.replace(' ', '')
-        name = name.encode('utf-8')
         name = name.replace('"', 'Q')
         f.write('#\n')
         f.write('# ' + name + '\n')
@@ -222,7 +224,10 @@ $EndDescr
                 for pin in body.pins:
                     if pin.label is not None:
                         pin.label.text = pin.label.text.replace(' ', '')
-                    add_line(pin, symbol, unit, convert)
+                    for pin_number in pin.pin_number.split(' '):
+                        unique_pin = pin
+                        unique_pin.pin_number = pin_number
+                        add_line(unique_pin, symbol, unit, convert)
 
         for _, line, symbol, units, converts in sorted(lines.values()):
             for body in symbol.bodies:
@@ -236,7 +241,7 @@ $EndDescr
             for unit in units:
                 for convert in converts:
                     writeline = line % dict(unit=unit, convert=convert)
-                    f.write(writeline.encode('utf-8'))
+                    f.write(str(writeline))
 
         f.write('ENDDRAW\n')
 
@@ -280,7 +285,9 @@ $EndDescr
         elif shape.type == 'label':
             angle = round(shape.rotation * 1800)
             align = shape.align[0].upper()
-            return ('T %d %d %d 20 0 %%(unit)d %%(convert)d %s Normal 0 %s C\n' %
+            if shape.text[0] == '!':
+                shape.text = '~' + shape.text[1:]
+            return ('T %d %d %d 50 0 %%(unit)d %%(convert)d %s Normal 0 %s C\n' %
                     (angle, make_length(shape.x), make_length(shape.y),
                      shape.text.replace(' ', '~'), align))
         elif shape.type == 'bezier':
@@ -311,7 +318,10 @@ $EndDescr
         else:
             name = pin.label.text
 
-        return ('X %s %s %d %d %d %s 60 60 %%(unit)d %%(convert)d B\n' %
+        if name[0] == '!':
+            name = '~' + name[1:]
+
+        return ('X %s %s %d %d %d %s 50 60 %%(unit)d %%(convert)d B\n' %
                 (name, pin.pin_number, make_length(x), make_length(y),
                  make_length(abs(length)), direction))
 
@@ -321,7 +331,7 @@ $EndDescr
         f.write('#\n#End Library\n')
 
 
-MULT = 1.0 / INMULT
+MULT = old_div(1.0, INMULT)
 
 def make_length(value):
     """ Make a kicad length measurement from an openjson measurement """

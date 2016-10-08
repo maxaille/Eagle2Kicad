@@ -1,5 +1,13 @@
 #!/usr/bin/env python2
 """ The Eagle Format Parser """
+from __future__ import print_function
+from __future__ import division
+from builtins import hex
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -39,10 +47,10 @@ from upconvert.core.shape import Point, Line, Label, Arc, Circle, Rectangle, Pol
 #    pass# pylint: disable=R0902
 
 
-EAGLE_SCALE = 1/0.127
+EAGLE_SCALE = old_div(1,0.127)
 
 
-class Eagle:
+class Eagle(object):
     """ The Eagle Format Parser """
 
     @staticmethod
@@ -53,7 +61,7 @@ class Eagle:
 #  (in that case all strings in maps have to be created as unicode ones as well)
 #        return unicode(value, 'latin-1') if None != value else None
 
-    class Header:
+    class Header(object):
         """ A struct that represents a header """
         constant = 0x10
         template = "=4BI4B3I"
@@ -80,7 +88,7 @@ class Eagle:
 # [13] -- some number / counter ; changed on each 'save as' (even with no changes)
             return _ret_val
 
-    class Settings:
+    class Settings(object):
         """ A struct that represents ?? settings ??
         """
         constant = 0x11
@@ -120,7 +128,7 @@ class Eagle:
             Eagle.Settings.counter += 1
             return _ret_val
 
-    class Grid:
+    class Grid(object):
         """ A struct that represents a grid
         """
         constant = 0x12
@@ -197,7 +205,7 @@ class Eagle:
                                     )
             return _ret_val
 
-    class Layer:
+    class Layer(object):
         """ A struct that represents a layer
         """
         constant = 0x13
@@ -320,7 +328,7 @@ class Eagle:
             self.shapesets = shapesets
             return
 
-    class AttributeHeader:
+    class AttributeHeader(object):
         """ A struct that represents a header of attributes
         """
         constant = 0x14
@@ -365,7 +373,7 @@ class Eagle:
                                             )
             return _ret_val
 
-    class Library:
+    class Library(object):
         """ A struct that represents a library
         """
         constant = 0x15
@@ -971,7 +979,7 @@ class Eagle:
                                              )
             return _ret_val
 
-    class Connections:
+    class Connections(object):
         """ A struct that represents a set of connection indexes
         """
         constant = 0x3c
@@ -1066,10 +1074,10 @@ class Eagle:
             """
             _ret_val = 0
             if 1 == algo:
-                _ret_val = ((number << Eagle.Shape.scale1b) /
-                                                Eagle.Shape.scale1a)
+                _ret_val = (old_div((number << Eagle.Shape.scale1b),
+                                                Eagle.Shape.scale1a))
             elif 2 == algo:
-                _ret_val = number / Eagle.Shape.scale2
+                _ret_val = old_div(number, Eagle.Shape.scale2)
             return _ret_val
 
         @staticmethod
@@ -1533,16 +1541,16 @@ class Eagle:
 
             if abs(_x2 - _x1) < abs(_y2 - _y1): # X is given
                 _x3 = _coord
-                _y3 = (_dy - _y2 * _y2 + _y1 * _y1) / (2 * (_y1 - _y2))
+                _y3 = old_div((_dy - _y2 * _y2 + _y1 * _y1), (2 * (_y1 - _y2)))
             else: # Y is given
-                _x3 = (_dx - _x1 * _x1 + _x2 * _x2) / (2 * (_x2 - _x1))
+                _x3 = old_div((_dx - _x1 * _x1 + _x2 * _x2), (2 * (_x2 - _x1)))
                 _y3 = _coord
 
-            _curve = math.degrees(math.acos((math.pow(_x1 - _x3, 2) + math.pow(_y1 - _y3, 2) +
+            _curve = math.degrees(math.acos(old_div((math.pow(_x1 - _x3, 2) + math.pow(_y1 - _y3, 2) +
                                              math.pow(_x2 - _x3, 2) + math.pow(_y2 - _y3, 2) +
-                                             - math.pow(_x1 - _x2, 2) - math.pow(_y1 - _y2, 2)) /
+                                             - math.pow(_x1 - _x2, 2) - math.pow(_y1 - _y2, 2)),
                                     (2 * math.sqrt(math.pow(_x1 - _x3, 2) + math.pow(_y1 - _y3, 2)) *
-                                         math.sqrt(math.pow(_x2 - _x3, 2) + math.pow(_y2 - _y3, 2)))))
+                                         math.sqrt(math.pow(_x2 - _x3, 2) + math.pow(_y2 - _y3, 2))))))
             if not (_dta[9] & Eagle.Arc.directionmask):
                 _curve *= -1
 
@@ -1554,7 +1562,7 @@ class Eagle:
                                                         _dta[8])),
                           style=Eagle.Wire.styles[
                               Eagle.Wire.stylemask & _dta[9]],
-                          curve=int((_curve + 0.005) * 100) / 100., # rounding
+                          curve=old_div(int((_curve + 0.005) * 100), 100.), # rounding
                           cap=Eagle.Arc.caps[_dta[9] & Eagle.Arc.capmask],
                           direction=Eagle.Arc.directions[_dta[9] &
                                                 Eagle.Arc.directionmask]
@@ -2050,7 +2058,7 @@ class Eagle:
                                    )
             return _ret_val
 
-    class Attribute:
+    class Attribute(object):
         """ A struct that represents an attribute
         """
         constant = 0x42
@@ -2118,7 +2126,7 @@ class Eagle:
                                          )
             return _ret_val
 
-    class Schematic:
+    class Schematic(object):
         """ A struct that represents "schematic"
         """
         defxreflabel = ":%F%N/%S.%C%R"
@@ -2158,7 +2166,7 @@ class Eagle:
                                          )
             return _ret_val
 
-    class NetClass:
+    class NetClass(object):
         """ A struct that represents a net class
         """
         template0 = "=3I" # header part read by _parse_file
@@ -2193,7 +2201,7 @@ class Eagle:
             """ Transforms given binary array to a float
             """
             _ret_val = 0
-            _ret_val = number / Eagle.NetClass.scale1
+            _ret_val = old_div(number, Eagle.NetClass.scale1)
             return _ret_val
 
         @staticmethod
@@ -2483,15 +2491,15 @@ class Eagle:
         _ret_val = None
 
 # calculate radius
-        _xm, _ym = (sarc.x1 + sarc.x2) / 2, (sarc.y1 + sarc.y2) / 2
+        _xm, _ym = old_div((sarc.x1 + sarc.x2), 2), old_div((sarc.y1 + sarc.y2), 2)
         _dm = math.sqrt(math.pow(sarc.x1 - _xm, 2) +
                 math.pow(sarc.y1 -_ym, 2))
-        _radius = abs(_dm / math.sin(math.radians(sarc.curve / 2)))
+        _radius = abs(old_div(_dm, math.sin(math.radians(old_div(sarc.curve, 2)))))
 
 # calculate start and end angles, beginning
         _xu = sarc.x1 if sarc.y1 > sarc.y2 else sarc.x2 # upper point's x
-        _am = (math.pi / 2 - math.acos((_xm - _xu) / _dm) + # middle
-                0 if True else (math.pi / 2))
+        _am = (old_div(math.pi, 2) - math.acos(old_div((_xm - _xu), _dm)) + # middle
+                0 if True else (old_div(math.pi, 2)))
         if 0 > _am:
             _am += math.pi
 
@@ -2499,9 +2507,9 @@ class Eagle:
         (_x1, _y1, _x2, _y2) = ((sarc.x1, sarc.y1, sarc.x2, sarc.y2)
                                     if 'counterclockwise' == sarc.direction else
                                     (sarc.x2, sarc.y2, sarc.x1, sarc.y1))
-        _mm = _radius * math.cos(math.radians(abs(sarc.curve / 2)))
-        _xcc, _ycc = (abs(abs(_y1) - abs(_ym)) * abs(_mm / _dm),
-                        abs(abs(_x1) - abs(_xm)) * abs(_mm / _dm)) # x <-> y, for an orthogonal vector
+        _mm = _radius * math.cos(math.radians(abs(old_div(sarc.curve, 2))))
+        _xcc, _ycc = (abs(abs(_y1) - abs(_ym)) * abs(old_div(_mm, _dm)),
+                        abs(abs(_x1) - abs(_xm)) * abs(old_div(_mm, _dm))) # x <-> y, for an orthogonal vector
 
         _xc, _yc = -1., -1.
         if _x1 >= _xm and _y1 <= _ym: # different operations for an each quadrant
@@ -2516,12 +2524,12 @@ class Eagle:
 # calculate start and end angles, end
         if _x1 <= _xm: # 3rd and 4th quadrants
             _am += math.pi
-        _astart = _am - math.radians(abs(sarc.curve / 2))
+        _astart = _am - math.radians(abs(old_div(sarc.curve, 2)))
         _aend = _astart + math.radians(abs(sarc.curve))
 
         _ret_val = Arc(x=_xc, y=_yc,
-                    start_angle=(_astart / math.pi),
-                    end_angle=(_aend / math.pi),
+                    start_angle=(old_div(_astart, math.pi)),
+                    end_angle=(old_div(_aend, math.pi)),
                     radius=_radius,
                     )
         return _ret_val
@@ -2605,22 +2613,22 @@ class Eagle:
                             _opy, _ly = _ss.y, _ss.y
                             _lrot = 0.
                             if None == _ss.rotate: # left
-                                _opx += 20/EAGLE_SCALE
-                                _lx = (_ss.x + _opx) / 2
-                                _ly += 20/EAGLE_SCALE
+                                _opx += old_div(20,EAGLE_SCALE)
+                                _lx = old_div((_ss.x + _opx), 2)
+                                _ly += old_div(20,EAGLE_SCALE)
                             elif "R90" == _ss.rotate: # down
-                                _opy += 20/EAGLE_SCALE
-                                _lx += 20/EAGLE_SCALE
-                                _ly = (_ss.y + _opy) / 2
+                                _opy += old_div(20,EAGLE_SCALE)
+                                _lx += old_div(20,EAGLE_SCALE)
+                                _ly = old_div((_ss.y + _opy), 2)
                                 #_lrot = 0.5 or 1.5 if label rotation is required
                             elif "R180" == _ss.rotate: # right
-                                _opx -= 20/EAGLE_SCALE
-                                _lx = (_ss.x + _opx) / 2
-                                _ly += 20/EAGLE_SCALE
+                                _opx -= old_div(20,EAGLE_SCALE)
+                                _lx = old_div((_ss.x + _opx), 2)
+                                _ly += old_div(20,EAGLE_SCALE)
                             elif "R270" == _ss.rotate: # up
-                                _opy -= 20/EAGLE_SCALE
-                                _lx += 20/EAGLE_SCALE
-                                _ly = (_ss.y + _opy) / 2
+                                _opy -= old_div(20,EAGLE_SCALE)
+                                _lx += old_div(20,EAGLE_SCALE)
+                                _ly = old_div((_ss.y + _opy), 2)
                                 #_lrot = 0.5 or 1.5 if label rotation is required
 
                             _label = Label (x=_lx, y=_ly,
@@ -2662,8 +2670,8 @@ class Eagle:
                                     _y = _ss.y1 + _height # bottom left vs upper left
                                 elif "R90" == _ss.rotate or "R270" == _ss.rotate: # pi/2 rotation
                                     _width, _height = _height, _width
-                                    _x = (_ss.x1 + _ss.x2 - _width) / 2 
-                                    _y = (_ss.y1 + _ss.y2 + _height) / 2
+                                    _x = old_div((_ss.x1 + _ss.x2 - _width), 2) 
+                                    _y = old_div((_ss.y1 + _ss.y2 + _height), 2)
                                 _sp = Rectangle(x=_x, y=_y, width=_width, height=_height)
                             elif isinstance(_ss, Eagle.Polygon):
 # second point for an every Eagle.Wire can be skipped since it'll be the first one

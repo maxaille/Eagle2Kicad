@@ -1,5 +1,12 @@
 #!/usr/bin/env python2
 """ The KiCAD Format Parser """
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
+from past.utils import old_div
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -45,7 +52,7 @@ from upconvert.library.kicad import lookup_part
 from os.path import split
 from os import listdir
 
-MULT = 2.0 / 10.0 # mils to 90 dpi
+MULT = old_div(2.0, 10.0) # mils to 90 dpi
 
 
 class KiCAD(object):
@@ -162,7 +169,7 @@ class KiCAD(object):
         """ Parse a Text line """
         parts = line.split()
         x, y, rotation = int(parts[2]), int(parts[3]), int(parts[4])
-        rotation = rotation / 2.0
+        rotation = old_div(rotation, 2.0)
         value = f.readline().decode('utf-8', 'replace').strip()
         return Annotation(value, x, -y, rotation, 'true')
 
@@ -289,7 +296,7 @@ class KiCAD(object):
         self.make_pin_points(design, get_point)
 
         # set of points connected to pins
-        pin_points = set(coord2point.itervalues())
+        pin_points = set(coord2point.values())
 
         # turn the (x, y) points into unique NetPoint objects
         segments = set((get_point(p1), get_point(p2)) for p1, p2 in segments)
@@ -299,7 +306,7 @@ class KiCAD(object):
         while segments:
             seg = segments.pop() # pick a point
             newnet = Net('')
-            map(pin_points.discard, seg) # mark points as used
+            list(map(pin_points.discard, seg)) # mark points as used
             newnet.connect(seg)
             found = True
 
@@ -308,7 +315,7 @@ class KiCAD(object):
 
                 for seg in segments: # iterate over segments
                     if newnet.connected(seg): # segment touching the net
-                        map(pin_points.discard, seg) # mark points as used
+                        list(map(pin_points.discard, seg)) # mark points as used
                         newnet.connect(seg) # add the segment
                         found.add(seg)
 
@@ -372,7 +379,7 @@ MATRIX2ROTATIONFLIP = {(1, 0, 0, -1): (0, False),
                    (-1, 0, 0, -1): (0, True)}
 
 # map openjson rotations to rotation matrices
-ROTFLIP2MATRIX = dict((v, k) for k, v in MATRIX2ROTATIONFLIP.iteritems())
+ROTFLIP2MATRIX = dict((v, k) for k, v in MATRIX2ROTATIONFLIP.items())
 
 
 class KiCADLibrary(object):
@@ -424,7 +431,7 @@ class ComponentParser(object):
 
     # the column positions of the unit and convert fields
     unit_cols = dict(A=6, C=4, P=2, S=5, T=6, X=9)
-    convert_cols = dict((k, v+1) for k, v in unit_cols.items())
+    convert_cols = dict((k, v+1) for k, v in list(unit_cols.items()))
 
     def __init__(self, line):
         parts = line.split()
@@ -462,7 +469,7 @@ class ComponentParser(object):
             symbol_indices = [1] # just convert
 
         if unit == 0:
-            body_indices = range(self.num_units) # all bodies
+            body_indices = list(range(self.num_units)) # all bodies
         else:
             body_indices = [unit-1] # one body
 
@@ -521,8 +528,8 @@ class ComponentParser(object):
         """ Parse an A (Arc) line """
         x, y, radius, start, end = [int(i) for i in parts[1:6]]
         # convert tenths of degrees to pi radians
-        start = start / 1800.0
-        end = end / 1800.0
+        start = old_div(start, 1800.0)
+        end = old_div(end, 1800.0)
         return Arc(x, y, end, start, radius)
 
 
@@ -537,7 +544,7 @@ class ComponentParser(object):
         num_points = int(parts[1])
         lines = []
         last_point = None
-        for i in xrange(num_points):
+        for i in range(num_points):
             point = int(parts[5 + 2 * i]), int(parts[6 + 2 * i])
             if last_point is not None:
                 lines.append(Line(last_point, point))
@@ -554,7 +561,7 @@ class ComponentParser(object):
     def parse_t_line(self, parts):
         """ Parse a T (Text) line """
         angle, x, y = [int(i) for i in parts[1:4]]
-        angle = angle / 1800.0
+        angle = old_div(angle, 1800.0)
         text = parts[8].replace('~', ' ')
 
         if len(parts) >= 12:
@@ -574,24 +581,24 @@ class ComponentParser(object):
             p1x = p2x
             p1y = p2y + pinlen
             label_x = p2x - 20
-            label_y = p2y + int(pinlen / 2)
+            label_y = p2y + int(old_div(pinlen, 2))
             label_rotation = 1.5
         elif direction == 'D': # down
             p1x = p2x
             p1y = p2y - pinlen
             label_x = p2x - 20
-            label_y = p2y - int(pinlen / 2)
+            label_y = p2y - int(old_div(pinlen, 2))
             label_rotation = 1.5
         elif direction == 'L': # left
             p1x = p2x - pinlen
             p1y = p2y
-            label_x = p2x - int(pinlen / 2)
+            label_x = p2x - int(old_div(pinlen, 2))
             label_y = p2y + 20
             label_rotation = 0
         elif direction == 'R': # right
             p1x = p2x + pinlen
             p1y = p2y
-            label_x = p2x + int(pinlen / 2)
+            label_x = p2x + int(old_div(pinlen, 2))
             label_y = p2y + 20
             label_rotation = 0
         else:

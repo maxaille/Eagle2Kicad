@@ -1,5 +1,10 @@
 #!/usr/bin/env python2
 """ The shape class """
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -39,6 +44,7 @@ class Shape(object):
         self.x = 0
         self.y = 0
 
+
     def rotate(self, rotation, in_place=False):
         self.rotation += rotation
 
@@ -66,6 +72,10 @@ class Shape(object):
                 self.y == other.y and
                 self.rotation == other.rotation and
                 self.flip_horizontal == other.flip_horizontal)
+
+
+    def __ne__(self, other):
+        return not(self == other)
 
 
     def flip(self):
@@ -115,6 +125,10 @@ class Rectangle(Shape):
         self.width = width
         self.height = height
         self.is_centered = is_centered
+
+
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.width, self.height, self.is_centered))
 
 
     def __eq__(self, other):
@@ -223,6 +237,10 @@ class RoundedRectangle(Shape):
         self.width = width
         self.height = height
         self.radius = radius
+
+
+    def __hash__(self):
+        return (hash(self.type, self.x, self.y, self.width, self.height, self.radius))
 
 
     def __eq__(self, other):
@@ -346,6 +364,10 @@ class Arc(Shape):
         self.radius = radius
 
 
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.start_angle, self.end_angle, self.radius))
+
+
     def __eq__(self, other):
         return (super(Arc, self).__eq__(other) and
                 (self.type == other.type and
@@ -460,6 +482,10 @@ class Circle(Shape):
         self.radius = abs(radius)
 
 
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.radius))
+
+
     def __eq__(self, other):
         return (super(Circle, self).__eq__(other) and
                 (self.type == other.type and
@@ -520,6 +546,7 @@ class Circle(Shape):
             "styles": self.styles,
             }
 
+
     def __repr__(self):
         return '<Circle(x={0}, y={1}, radius={2})>'.format(self.x, self.y, self.radius)
 
@@ -554,6 +581,10 @@ class Label(Shape):
             self.align = "center"
         else:
             raise ValueError('Label requires the align to be either "left", "right", or "center"')
+
+
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.text, self.baseline, self.font_size, self.font_family))
 
 
     def __eq__(self, other):
@@ -595,8 +626,8 @@ class Label(Shape):
             assert self._segments
 
             # Calculate the absolute midpoint of the shape
-            mid_x = ((self._max_point.x - self._min_point.x) / 2) + self._min_point.x
-            mid_y = ((self._max_point.y - self._min_point.y) / 2) + self._min_point.y
+            mid_x = (old_div((self._max_point.x - self._min_point.x), 2)) + self._min_point.x
+            mid_y = (old_div((self._max_point.y - self._min_point.y), 2)) + self._min_point.y
 
             # Rotate the segments in the label about the midpoint of the shape
             for segments in self._segments:
@@ -701,6 +732,10 @@ class Line(Shape):
                  self.p2 == other.p2))
 
 
+    def __hash__(self):
+        return hash((self.type, self.p1, self.p2))
+
+
     def min_point(self):
         """ Return the min point of the shape """
         x = self.p1.x
@@ -791,10 +826,18 @@ class Line(Shape):
 class Polygon(Shape):
     """ A polygon is just a list of points, drawn as connected in order """
 
+    instance_number = 0
+
     def __init__(self, points=None):
         super(Polygon, self).__init__()
         self.type = "polygon"
         self.points = points or list()
+        self.hash_value = Polygon.instance_number
+        Polygon.instance_number += 1
+
+
+    def __hash__(self):
+        return hash((self.type, self.hash_value))
 
 
     def __eq__(self, other):
@@ -881,6 +924,10 @@ class BezierCurve(Shape):
         self._memo_cache = {'min_point': {}, 'max_point': {}}
 
 
+    def __hash__(self):
+        return hash((self.type, self.control1, self.control2, self.p1, self.p2))
+
+
     def __eq__(self, other):
         return (super(BezierCurve, self).__eq__(other) and
                 (self.type == other.type and
@@ -910,7 +957,7 @@ class BezierCurve(Shape):
                                  3 * (1-t) * (1-t) * t * self.control1.y +
                                  3 * (1-t) * t * t * self.control2.y +
                                  t * t * t * self.p2.y))
-        points = [Point(bzx(t), bzy(t)) for t in [float(s)/maxpath for s in
+        points = [Point(bzx(t), bzy(t)) for t in [old_div(float(s),maxpath) for s in
                                                 range(int(maxpath) + 1)]]
         return points
 
@@ -1026,6 +1073,10 @@ class Moire(Shape):
         self.hair_length = hair_length
 
 
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.outer_diameter, self.ring_thickness, self.gap_thickness, self.max_rings, self.hair_thickness, self.hair_length))
+
+
     def min_point(self):
         """ Return the min point of the shape """
         x = self.x - self._half_box()
@@ -1048,7 +1099,7 @@ class Moire(Shape):
 
     def _half_box(self):
         """ Return half the width of the bounding square. """
-        rad = self.outer_diameter / 2.0
+        rad = old_div(self.outer_diameter, 2.0)
         opp = abs(sin(self.rotation * pi) * rad)
         adj = abs(cos(self.rotation * pi) * rad)
         return max(opp, adj, rad)
@@ -1107,6 +1158,10 @@ class Thermal(Shape):
         self.rotation = rotation
 
 
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.outer_diameter, self.inner_diameter, self.gap_thickness, self.rotation))
+
+
     def min_point(self):
         """ Return the min point of the shape """
         x = self.x - self._half_box()
@@ -1129,9 +1184,9 @@ class Thermal(Shape):
 
     def _half_box(self):
         """ Return half the width of the bounding box. """
-        hyp = self.outer_diameter / 2.0
-        opp = self.gap_thickness / 2.0
-        norm_theta = asin(opp / hyp) / pi
+        hyp = old_div(self.outer_diameter, 2.0)
+        opp = old_div(self.gap_thickness, 2.0)
+        norm_theta = old_div(asin(old_div(opp, hyp)), pi)
         rot = self.rotation % 0.5
         if rot < norm_theta:
             hwid = cos((norm_theta - rot) * pi) * hyp
@@ -1191,6 +1246,10 @@ class RegularPolygon(Shape):
         self.rotation = rotation
 
 
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.outer_diameter, self.vertices, self.rotation))
+
+
     def __eq__(self, other):
         return (super(RegularPolygon, self).__eq__(other) and
                 (self.type == other.type and
@@ -1220,11 +1279,11 @@ class RegularPolygon(Shape):
 
     def _max_dist(self, axis_rads):
         """ Return max reach of the shape along an axis. """
-        v_rads = 2.0 / self.vertices
+        v_rads = old_div(2.0, self.vertices)
         if self.vertices % 2 == 0:
-            hyp = self.outer_diameter / 2.0
+            hyp = old_div(self.outer_diameter, 2.0)
         else:
-            hyp = self.outer_diameter - acos(v_rads / 2.0)
+            hyp = self.outer_diameter - acos(old_div(v_rads, 2.0))
         start_angle = (axis_rads + self.rotation) % v_rads
         this_v = abs(cos(start_angle * pi) * hyp)
         next_v = abs(cos((start_angle - v_rads) * pi) * hyp)
@@ -1267,10 +1326,11 @@ class RegularPolygon(Shape):
             }
 
 
-class Point:
+class Point(object):
     """ Simple x, y coordinate. Different from the 'Point' in Nets """
 
     def __init__(self, x, y=None):
+        self.type = "point"
         if y is not None:
             self.x = x
             self.y = y
@@ -1281,6 +1341,10 @@ class Point:
         # Allow for instantiation from a tuple
         else:
             self.x, self.y = x
+
+
+    def __hash__(self):
+        return hash((self.type, self.x, self.y))
 
 
     def __repr__(self):
@@ -1385,6 +1449,10 @@ class Obround(Shape):
         self.height = height
 
 
+    def __hash__(self):
+        return hash((self.type, self.x, self.y, self.width, self.height))
+
+
     def __eq__(self, other):
         return (super(Obround, self).__eq__(other) and
                 (self.type == other.type and
@@ -1394,15 +1462,15 @@ class Obround(Shape):
 
     def min_point(self):
         """ Return the min point of the shape """
-        x = self.x - self.width / 2.0
-        y = self.y - self.height / 2.0
+        x = self.x - old_div(self.width, 2.0)
+        y = self.y - old_div(self.height, 2.0)
         return Point(x, y)
 
 
     def max_point(self):
         """ Return the max point of the shape """
-        x = self.x + self.width / 2.0
-        y = self.y + self.height / 2.0
+        x = self.x + old_div(self.width, 2.0)
+        y = self.y + old_div(self.height, 2.0)
         return Point(x, y)
 
 
@@ -1447,6 +1515,10 @@ class RoundedSegment(Shape):
         self.p1 = p1
         self.p2 = p2
         self.width = width
+
+
+    def __hash__(self):
+        return hash((self.type, self.p1, self.p2, self.width))
 
 
     def __eq__(self, other):
@@ -1506,5 +1578,3 @@ class RoundedSegment(Shape):
             "p1": self.p1.json(),
             "p2": self.p2.json()
             }
-
-

@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 """ The trace class """
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -24,7 +25,7 @@ from upconvert.core.shape import Point
 from upconvert.utils.stringify import stringify_attributes
 
 
-class Trace:
+class Trace(object):
     """ a Trace with metadata and a pair of points """
 
     def __init__(self, trace_id):

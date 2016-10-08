@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 """ The annotation class """
+from builtins import object
 
 # upconverty - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -23,7 +24,7 @@
 from upconvert.core.shape import Point
 
 
-class Annotation:
+class Annotation(object):
     """ The Annotation class represents all cases of annotations """
 
     def __init__(self, value, x, y, rotation, visible, layer='default', flip_horizontal=False, label=None): # pylint: disable=R0913

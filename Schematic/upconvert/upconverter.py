@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 """ A universal hardware design file format converter using 
 Upverter's Open JSON Interchange Format """
+from __future__ import print_function
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -93,10 +95,10 @@ class Upconverter(object):
         """ Autodetect the given input files formatting """
         confidence = {}
 
-        for name, parser in PARSERS.iteritems():
+        for name, parser in list(PARSERS.items()):
             confidence[name] = parser.auto_detect(inputfile)
 
-        ordered = sorted(confidence.iteritems(), key=operator.itemgetter(1), reverse=True)
+        ordered = sorted(iter(list(confidence.items())), key=operator.itemgetter(1), reverse=True)
         if ordered[0][1] < 0.5:
             log.error('Failed to auto-detect input type for %s. best guess: %s, confidence: %s',
                       inputfile, ordered[0][0], ordered[0][1])
@@ -149,7 +151,7 @@ class Upconverter(object):
         os.close(tmp_fd)
 
         lib_path_list = []
-        for lib_filename, lib_content in lib_contents.iteritems():
+        for lib_filename, lib_content in list(lib_contents.items()):
             lib_tmp_fd, lib_tmp_path = tempfile.mkstemp(suffix = lib_filename, prefix = lib_filename, dir=tmp_dir)
             os.write(lib_tmp_fd, lib_content.read())
             os.close(lib_tmp_fd)
@@ -210,7 +212,7 @@ def main(): #pylint: disable=R0912,R0915
                       help="write output file as TYPE", metavar="TYPE",
                       default="openjson")
     argp.add_argument("-s", "--sym-dirs", dest="sym_dirs",
-                      help="specify SYMDIRS to search for .sym files (for gEDA only)", 
+                      help="specify SYMDIRS to search for .sym files (for gEDA only)",
                       metavar="SYMDIRS", nargs="+")
     argp.add_argument('--unsupported', action='store_true', default=False,
                       help="run with an unsupported python version")
@@ -227,30 +229,23 @@ def main(): #pylint: disable=R0912,R0915
     args = argp.parse_args()
 
     if args.version:
-        print "upconverter %s in python %s.%s" % (ver.version(), sys.version_info[0], sys.version_info[1])
-        print "Copyright (C) 2007 Upverter, Inc."
-        print "This is free software; see the source for copying conditions.  There is NO warranty; not even for",
-        print "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+        print("upconverter %s in python %s.%s" % (ver.version(), sys.version_info[0], sys.version_info[1]))
+        print("Copyright (C) 2007 Upverter, Inc.")
+        print("This is free software; see the source for copying conditions.  There is NO warranty; not even for", end=' ')
+        print("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.")
         sys.exit(0)
 
     if args.formats:
-        print "upconverter supports the following file formats & encodings"
-        print ""
-        print "As Input:"
+        print("upconverter supports the following file formats & encodings")
+        print("")
+        print("As Input:")
         for frmt in PARSERS:
-            print "* %s (%s)" % (frmt, EXTENSIONS[frmt])
-        print ""
-        print "As Output:"
+            print("* %s (%s)" % (frmt, EXTENSIONS[frmt]))
+        print("")
+        print("As Output:")
         for frmt in WRITERS:
-            print "* %s (%s)" % (frmt, EXTENSIONS[frmt])
+            print("* %s (%s)" % (frmt, EXTENSIONS[frmt]))
         sys.exit(0)
-
-    # Fail if strict and wrong python version
-    if sys.version_info[0] > 2 or sys.version_info[1] > 6:
-        print 'WARNING: RUNNING UNSUPPORTED VERSION OF PYTHON (%s.%s > 2.6)' % (sys.version_info[0],
-            sys.version_info[1])
-        if not args.unsupported:
-            sys.exit(-1)
 
     inputtype = args.inputtype
     outputtype = args.outputtype
@@ -297,7 +292,7 @@ def main(): #pylint: disable=R0912,R0915
     except Exception: #pylint: disable=W0703
         if args.raise_errors:
             raise
-        print "ERROR: Failed to parse", inputtype
+        print("ERROR: Failed to parse", inputtype)
         exit(1)
 
     # we got a good result
@@ -307,12 +302,12 @@ def main(): #pylint: disable=R0912,R0915
         except Exception: #pylint: disable=W0703
             if args.raise_errors:
                 raise
-            print "ERROR: Failed to write", outputtype
+            print("ERROR: Failed to write", outputtype)
             exit(1)
 
     # parse returned None -> something went wrong
     else:
-        print "Output cancelled due to previous errors."
+        print("Output cancelled due to previous errors.")
         exit(1)
 
     if args.profile:

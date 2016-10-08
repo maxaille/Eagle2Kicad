@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 """ The instance class """
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -23,7 +24,7 @@
 from upconvert.utils.stringify import stringify_attributes
 
 
-class ComponentInstance:
+class ComponentInstance(object):
     """ An instance of a component with a specific symbol """
 
     def __init__(self, instance_id, library_component, library_id, symbol_index, footprint_index=0):
@@ -118,7 +119,7 @@ class ComponentInstance:
         return '''<ComponentInstance('{0}', '{1}', {2}, {3})>'''.format(self.instance_id, self.library_id, self.symbol_index, self.footprint_index)
 
 
-class SymbolAttribute:
+class SymbolAttribute(object):
     """ The instance of a single body.  There should be a SymbolAttribute
     for every body in the symbol that ComponentInstance is an instance of.
     """
@@ -176,7 +177,7 @@ class SymbolAttribute:
             }
 
 
-class FootprintAttribute:
+class FootprintAttribute(object):
     """ The instance of a single body.  There should be a FootprintAttribute
     for every body in the footprint that ComponentInstance is an instance of.
     """
@@ -221,7 +222,7 @@ class FootprintAttribute:
         return '''<FootprintAttribute({0}, {1}, {2}, {3}, '{4}')>'''.format(self.x, self.y, self.rotation, self.flip_horizontal, self.layer)
 
 
-class GenObjAttribute:
+class GenObjAttribute(object):
     """ The instance of a single generated object. """
 
     def __init__(self, x, y, rotation, flip, layer):
@@ -270,7 +271,7 @@ class GenObjAttribute:
         return '''<GenObjAttribute({0}, {1}, {2}, {3}, '{4}', {5})>'''.format(self.x, self.y, self.rotation, self.flip, self.layer, self.attributes)
 
 
-class FootprintPos:
+class FootprintPos(object):
     """ The footprint position. """
 
     def __init__(self, x, y, rotation, flip, side):

@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 """ Generated objects """
+from __future__ import division
+from past.utils import old_div
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -99,9 +102,9 @@ class PadStack(GeneratedObject):
                 layer_name = ' '.join([rev_sides.get(piece, piece) for piece in layer_name.split(' ')])
 
             if shape_type == 'rectangle':
-                pad.add_shape(Rectangle((width / 2), -(height / 2), width, height))
+                pad.add_shape(Rectangle((old_div(width, 2)), -(old_div(height, 2)), width, height))
             elif shape_type == 'rounded rectangle':
-                pad.add_shape(RoundedRectangle((width / 2), -(height / 2), width, height, radius))
+                pad.add_shape(RoundedRectangle((old_div(width, 2)), -(old_div(height, 2)), width, height, radius))
             elif shape_type == 'circle':
                 pad.add_shape(Circle(0, 0, radius))
             else:
@@ -171,9 +174,9 @@ class PlatedThroughHole(GeneratedObject):
             create_solder_mask_expansion = lambda : Rectangle(sme_pos.x, sme_pos.y, solder_mask_width, solder_mask_width)
 
         elif plating_shape == 'circle':
-            create_shape = lambda : Circle(pad_pos.x, pad_pos.y, plating_diameter / 2)
+            create_shape = lambda : Circle(pad_pos.x, pad_pos.y, old_div(plating_diameter, 2))
 
-            solder_mask_radius = solder_mask_expansion + (plating_diameter / 2)
+            solder_mask_radius = solder_mask_expansion + (old_div(plating_diameter, 2))
             create_solder_mask_expansion = lambda : Circle(sme_pos.x, sme_pos.y, solder_mask_radius)
 
         elif plating_shape == 'rectangle':
@@ -194,7 +197,7 @@ class PlatedThroughHole(GeneratedObject):
             raise ValueError('unexpected shape for plated through hole "{0}"'.format(plating_shape))
 
         # cirle of radius 'solder_mask_expansion' + ('plating_diameter' / 2) in the top and bottom silkscreen layers
-        solder_mask_radius = solder_mask_expansion + (plating_diameter / 2)
+        solder_mask_radius = solder_mask_expansion + (old_div(plating_diameter, 2))
         top_solder_mask = FBody()
         top_solder_mask.add_shape(create_solder_mask_expansion())
         bodies.append((FootprintAttribute(0, 0, 0, False, 'top solder mask'), top_solder_mask))
@@ -205,7 +208,7 @@ class PlatedThroughHole(GeneratedObject):
 
         # circle of diameter 'internal_diameter' on the hole layer
         hole = FBody()
-        hole.add_shape(Circle(pad_pos.x, pad_pos.y, internal_diameter / 2))
+        hole.add_shape(Circle(pad_pos.x, pad_pos.y, old_div(internal_diameter, 2)))
         bodies.append((FootprintAttribute(0, 0, 0, False, 'hole'), hole))
 
         # circles of diameter 'plating_diameter' on each connection layer
@@ -214,7 +217,7 @@ class PlatedThroughHole(GeneratedObject):
             if layer_name == 'top copper' or layer_name == 'bottom copper':
                 connected_layer.add_shape(create_shape())
             else:
-                connected_layer.add_shape(Circle(pad_pos.x, pad_pos.y, plating_diameter / 2))
+                connected_layer.add_shape(Circle(pad_pos.x, pad_pos.y, old_div(plating_diameter, 2)))
             bodies.append((FootprintAttribute(0, 0, 0, False, layer_name), connected_layer))
 
         return bodies
@@ -247,7 +250,7 @@ class Via(GeneratedObject):
         solder_mask_expansion = self.get_int_attr('solder_mask_expansion', 0, instance_attributes)
         plating_diameter = self.get_int_attr('plating_diameter', 0, instance_attributes)
         internal_diameter = self.get_int_attr('internal_diameter', 0, instance_attributes)
-        solder_mask_radius = solder_mask_expansion + (plating_diameter / 2)
+        solder_mask_radius = solder_mask_expansion + (old_div(plating_diameter, 2))
 
         # placment attribute + body pairs making up the generated object
         bodies = []
@@ -262,13 +265,13 @@ class Via(GeneratedObject):
 
         # circle of diameter 'internal_diameter' on the hole layer
         hole = FBody()
-        hole.add_shape(Circle(pos.x, pos.y, internal_diameter / 2))
+        hole.add_shape(Circle(pos.x, pos.y, old_div(internal_diameter, 2)))
         bodies.append((FootprintAttribute(0, 0, 0, False, 'hole'), hole))
 
         # circles of diameter 'plating_diameter' on each connection layer
         for layer_name in attached_layers:
             connected_layer = FBody()
-            connected_layer.add_shape(Circle(pos.x, pos.y, plating_diameter / 2))
+            connected_layer.add_shape(Circle(pos.x, pos.y, old_div(plating_diameter, 2)))
             bodies.append((FootprintAttribute(0, 0, 0, False, layer_name), connected_layer))
 
         return bodies

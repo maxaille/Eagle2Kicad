@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 """ The net class """
+from builtins import object
 
 # upconvert - A universal hardware design file format converter using
 # Format:       upverter.com/resources/open-json-format/
@@ -24,7 +25,7 @@ from upconvert.core.shape import Point
 from upconvert.utils.stringify import stringify_attributes
 
 
-class Net:
+class Net(object):
     """ a Net with metadata and a list of points (with connections)
     Internal representation of a net, closely matches JSON net """
 
@@ -37,8 +38,8 @@ class Net:
 
     def bounds(self):
         """ Return the min and max points of the bounding box """
-        x_values = [p.x for p in self.points.values()]
-        y_values = [p.y for p in self.points.values()]
+        x_values = [p.x for p in list(self.points.values())]
+        y_values = [p.y for p in list(self.points.values())]
         # get a list of all the bounding points for annotations
         bounds = sum([ann.bounds() for ann in self.annotations], [])
         x_values.extend([pt.x for pt in bounds])
@@ -86,7 +87,7 @@ class Net:
 
     def scale(self, factor):
         """ Scale the x & y coordinates in the net. """
-        for point in self.points.values():
+        for point in list(self.points.values()):
             point.scale(factor)
         for anno in self.annotations:
             anno.scale(factor)
@@ -94,7 +95,7 @@ class Net:
 
     def shift(self, dx, dy):
         """ Shift the x & y coordinates in the net. """
-        for point in self.points.values():
+        for point in list(self.points.values()):
             point.shift(dx, dy)
         for anno in self.annotations:
             anno.shift(dx, dy)
@@ -102,7 +103,7 @@ class Net:
 
     def rebase_y_axis(self, height):
         """ Rebase the y coordinate in the net. """
-        for point in self.points.values():
+        for point in list(self.points.values()):
             point.rebase_y_axis(height)
         for anno in self.annotations:
             anno.rebase_y_axis(height)
@@ -114,12 +115,12 @@ class Net:
             "net_id": self.net_id,
             "attributes": stringify_attributes(self.attributes),
             "annotations": [ann.json() for ann in self.annotations],
-            "points": sorted([point.json() for point in self.points.values()],
+            "points": sorted([point.json() for point in list(self.points.values())],
                              key=lambda point : point.get('point_id'))
             }
 
 
-class NetPoint:
+class NetPoint(object):
     """ A point, basic element in a net """
 
     def __init__(self, point_id, x, y):
@@ -168,7 +169,7 @@ class NetPoint:
             }
 
 
-class ConnectedComponent:
+class ConnectedComponent(object):
     """ Object representing a component connected to a net """
 
     def __init__(self, instance_id, pin_number):
